@@ -66,7 +66,7 @@ async def handle_github_webhook(request: Request):
     pr = data.get("pull_request")
     
     # Ensure PR exists and is opened or synchronized
-    if pr and (data["action"] in ["opened", "synchronized"]):
+    if pr and (data["action"] in ["opened", "synchronize"]):
         async with httpx.AsyncClient() as client:
             # Fetch diff from GitHub
             resp = await client.get(pr["diff_url"], headers=HEADERS)
