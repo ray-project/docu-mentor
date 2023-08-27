@@ -72,7 +72,7 @@ async def handle_github_webhook(request: Request):
             resp = await client.get(pr["diff_url"], headers=HEADERS)
             
             diff = resp.text
-            logger.info(diff)
+            logger.info("This is the diff:" + diff)
 
             chat_completion = openai.ChatCompletion.create(
                 model="meta-llama/Llama-2-70b-chat-hf",
@@ -80,7 +80,7 @@ async def handle_github_webhook(request: Request):
                      {"role": "system", "content": "You are a helpful assistant." +
                        "Improve the following content. Criticise grammar, punctuation, style etc." +
                        "Make it so that you recommend common technical writing knowledge"}, 
-                     {"role": "user", f"content": "This is the content: {diff}"}],
+                     {"role": "user", "content": f"This is the content: {diff}"}],
                 temperature=0.7
             )
 
