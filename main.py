@@ -84,8 +84,6 @@ async def handle_github_webhook(request: Request):
                 elif line.startswith('+') and not line.startswith('+++'):
                     files_with_diff[current_file]['text'].append(line[1:])
 
-            logger.info("This is the extracted diff:" + files_with_diff)
-
             chat_completion = openai.ChatCompletion.create(
                 model="meta-llama/Llama-2-70b-chat-hf",
                 messages=[
