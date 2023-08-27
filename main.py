@@ -69,8 +69,10 @@ async def handle_github_webhook(request: Request):
         async with httpx.AsyncClient() as client:
             # Fetch diff from GitHub
             url = pr.get("url")
+            logger.info(url)
+            
             parts = url.split("/")
-            owner, repo, pr_number = parts[-4], parts[-3], parts[-2]
+            owner, repo, pr_number = parts[-4], parts[-3], parts[-1]
             url = f"https://patch-diff.githubusercontent.com/raw/{owner}/{repo}/pull/{pr_number}.diff"
 
             diff_response = await client.get(url, headers=HEADERS)
