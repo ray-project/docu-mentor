@@ -70,7 +70,7 @@ async def handle_github_webhook(request: Request):
             # Fetch diff from GitHub
             url = pr.get("url")
             logger.info(url)
-            
+
             parts = url.split("/")
             owner, repo, pr_number = parts[-4], parts[-3], parts[-1]
             url = f"https://patch-diff.githubusercontent.com/raw/{owner}/{repo}/pull/{pr_number}.diff"
@@ -97,7 +97,7 @@ async def handle_github_webhook(request: Request):
                        "Make it so that you recommend common technical writing knowledge " +
                        "The <content> will be in JSON format and contain file names and 'text'." +
                        "Make sure to give concrete feedback per file."}, 
-                     {"role": "user", "content": f"This is the content: {diff}"}],
+                     {"role": "user", "content": f"This is the content: {files_with_diff}"}],
                 temperature=0.7
             )
 
