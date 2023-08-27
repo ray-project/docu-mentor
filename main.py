@@ -2,8 +2,13 @@ from fastapi import FastAPI, Request
 import httpx
 from dotenv import load_dotenv
 import os
+import openai
 
 load_dotenv()
+
+
+openai.api_base = "https://api.endpoints.anyscale.com/v1"
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
@@ -62,11 +67,25 @@ async def handle_github_webhook(request: Request):
             
             diff = resp.text
             print(diff)
-            
+
+            chat_completion = openai.ChatCompletion.create(
+                model="meta-llama/Llama-2-70b-chat-hf",
+                messages=[
+                     {"role": "system", "content": "You are a helpful assistant." +
+                       "Improve the following content. Criticise grammar, punctuation, style etc." +
+                       "Make it so that you recommend common technical writing knowledge"}, 
+                     {"role": "user", f"content": "This is the content: {diff}"}],
+                temperature=0.7
+            )
+
+
+            print(chat_completion)
+            content = chat_completion["choices"][0]["message"]["content"]
+                        
             # Let's comment on the PR
             await client.post(
                 f"{pr['issue_url']}/comments",
-                json={"body": "Found your PR!"},
+                json={"body": f":rocket: Found your PR! \n {content}"},
                 headers=HEADERS
             )
     
