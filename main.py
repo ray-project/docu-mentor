@@ -99,7 +99,6 @@ async def handle_github_webhook(request: Request):
                 temperature=0.7
             )
 
-
             logger.info(chat_completion)
             content = chat_completion["choices"][0]["message"]["content"]
                         
