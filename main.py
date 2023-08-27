@@ -3,6 +3,12 @@ import httpx
 from dotenv import load_dotenv
 import os
 import openai
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+logger = logging.getLogger("Doc Sanity")
 
 load_dotenv()
 
@@ -66,7 +72,7 @@ async def handle_github_webhook(request: Request):
             resp = await client.get(pr["diff_url"], headers=HEADERS)
             
             diff = resp.text
-            print(diff)
+            logger.info(diff)
 
             chat_completion = openai.ChatCompletion.create(
                 model="meta-llama/Llama-2-70b-chat-hf",
@@ -79,7 +85,7 @@ async def handle_github_webhook(request: Request):
             )
 
 
-            print(chat_completion)
+            logger.info(chat_completion)
             content = chat_completion["choices"][0]["message"]["content"]
                         
             # Let's comment on the PR
