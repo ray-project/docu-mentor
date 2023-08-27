@@ -60,6 +60,7 @@ async def post_pr_comment(owner, repo, pr_number, comment_body):
         return response.json()
 
 
+
 @app.post("/webhook/")
 async def handle_github_webhook(request: Request):
     data = await request.json()
@@ -72,6 +73,12 @@ async def handle_github_webhook(request: Request):
             resp = await client.get(pr["diff_url"], headers=HEADERS)
             
             diff = resp.text
+            logger.info("Raw diff with meta-data:" + diff)
+
+            additions = []
+            for line in diff.split('\n'):
+                if line.startswith('+') and not line.startswith('+++'):
+                    additions.append(line[1:])
             logger.info("This is the diff:" + diff)
 
             chat_completion = openai.ChatCompletion.create(
