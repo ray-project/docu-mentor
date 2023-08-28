@@ -194,7 +194,7 @@ async def handle_github_webhook(request: Request):
                                 
                     # Let's comment on the PR
                     await client.post(
-                        f"{pr['issue_url']}/comments",
+                        f"{comment['issue_url']}/comments",
                         json={
                             "body": f":rocket: Doc Sanity finished analysing your PR! :rocket:\n\n" +
                             "Take a look at your results:\n" +
