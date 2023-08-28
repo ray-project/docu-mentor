@@ -81,8 +81,6 @@ def files_to_diff_dict(diff):
 @app.post("/webhook/")
 async def handle_github_webhook(request: Request):
     data = await request.json()
-    pr = data.get("pull_request")
-
     logger.info(data)
 
     headers = {
@@ -125,7 +123,7 @@ async def handle_github_webhook(request: Request):
                 # The bot is mentioned in the PR comment
                 async with httpx.AsyncClient() as client:
                     await client.post(
-                        f"{pr['issue_url']}/comments",
+                        f"{comment['issue_url']}/comments",
                         json={
                             "body": f"I react to @mentions!"
                         },
@@ -133,6 +131,7 @@ async def handle_github_webhook(request: Request):
                     )
     
     # Ensure PR exists and is opened or synchronized
+    pr = data.get("pull_request")
     if pr and (data["action"] in ["opened", "synchronize"]):
         async with httpx.AsyncClient() as client:
             # Fetch diff from GitHub
