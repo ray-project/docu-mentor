@@ -151,7 +151,7 @@ async def handle_github_webhook(request: Request):
                 async with httpx.AsyncClient() as client:
                     # Fetch diff from GitHub
 
-                    files_to_keep = comment_body.replace("doc-sanity run ", "").split(" ")
+                    files_to_keep = comment_body.replace("@doc-sanity run", "").split(" ")
 
                     url = get_diff_url(pr)
                     logger.info(url)
