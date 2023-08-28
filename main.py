@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 import httpx
 from dotenv import load_dotenv
 import os
@@ -14,6 +15,7 @@ logger = logging.getLogger("Doc Sanity")
 
 load_dotenv()
 
+greeting = "👋 Hi, I'm @doc-sanity, an LLM-powered GitHub app that gives you actionable feedback on the writing contained in your pull requests."
 
 openai.api_base = "https://api.endpoints.anyscale.com/v1"
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -105,6 +107,28 @@ async def handle_github_webhook(request: Request):
             'Accept': 'application/vnd.github.VERSION.diff'
         }    
     
+    # Check if the event is a issue comment
+    issue = data["issue"]
+    if issue and data.get("action") in ["created", "edited"]:
+
+        # Check if the issue is a pull request
+        if "/pull/" in issue["html_url"]:
+            
+            # Get the comment body
+            comment = data.get("comment")
+            comment_body = comment.get("body")
+
+            # Check if the bot is mentioned in the comment
+            if "@doc-sanity" in comment_body:
+                # Your bot is mentioned in the PR comment
+                await client.post(
+                f"{pr['issue_url']}/comments",
+                json={
+                    "body": f"I react to @mentions!"
+                },
+                headers=headers
+            )
+    
     # Ensure PR exists and is opened or synchronized
     if pr and (data["action"] in ["opened", "synchronize"]):
         async with httpx.AsyncClient() as client:
@@ -125,8 +149,9 @@ async def handle_github_webhook(request: Request):
                      "content": "You are a helpful assistant." +
                      "Improve the following <content>. Criticise grammar, punctuation, style etc." +
                      "Make it so that you recommend common technical writing knowledge " +
-                     "The <content> will be in JSON format and contain file names and 'text'." +
-                     "Make sure to give concise feedback per file."}, 
+                     "The <content> will be in JSON format and contain file names and 'text'. " +
+                     "You can use GitHub-flavored markdown syntax. " +
+                     "Make sure to give very concise feedback per file."}, 
                     {"role": "user", 
                      "content": f"This is the content: {files_with_diff}"}
                 ],
@@ -134,13 +159,23 @@ async def handle_github_webhook(request: Request):
             )
 
             logger.info(chat_completion)
+            model = chat_completion.get("model")
+            usage = chat_completion.get("usage")
+            prompt_tokens = usage.get("prompt_tokens")
+            completion_tokens = usage.get("completion_tokens")
             content = chat_completion["choices"][0]["message"]["content"]
                         
             # Let's comment on the PR
             await client.post(
                 f"{pr['issue_url']}/comments",
-                json={"body": f":rocket: Doc Sanity bot found your PR! :rocket:\n\nHere are the results of my analysis:\n {content}"},
+                json={
+                    "body": f":rocket: Doc Sanity finished analysing your PR! :rocket:\n\n" +
+                    "Take a look at your results:\n" +
+                    f"{content}\n\n" +
+                    "This bot is proudly powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n" +
+                    f"It used the model {model}, used {prompt_tokens} prompt tokens, and {completion_tokens} completion tokens in total."
+                },
                 headers=headers
             )
     
-    return {"status": "success"}
+    return JSONResponse(status_code=200)
