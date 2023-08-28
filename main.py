@@ -22,11 +22,7 @@ app = FastAPI()
 
 # By default, use a personal access token.
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "User-Agent": "GitHub-PR-Bot",
-    "Accept": "application/vnd.github.v3+json"
-}
+
 
 # If the app was installed, retrieve the installation access token through the App's
 # private key and app ID, by generating an intermediary JWT token.
@@ -85,6 +81,12 @@ async def handle_github_webhook(request: Request):
     data = await request.json()
     pr = data.get("pull_request")
 
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "User-Agent": "GitHub-PR-Bot",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
     installation = data.get("installation")
     if installation and installation.get("id"):
         installation_id = installation.get("id")
@@ -97,7 +99,7 @@ async def handle_github_webhook(request: Request):
             installation_id
         )
     
-        HEADERS = {
+        headers = {
             'Authorization': f'token {installation_access_token}',
             'User-Agent': 'Your-App-Name',
             'Accept': 'application/vnd.github.VERSION.diff'
@@ -109,7 +111,7 @@ async def handle_github_webhook(request: Request):
             # Fetch diff from GitHub
 
             url = get_diff_url(pr)
-            diff_response = await client.get(url, headers=HEADERS)
+            diff_response = await client.get(url, headers=headers)
             diff = diff_response.text
             logger.info("Raw diff with meta-data:" + diff)
 
@@ -137,8 +139,8 @@ async def handle_github_webhook(request: Request):
             # Let's comment on the PR
             await client.post(
                 f"{pr['issue_url']}/comments",
-                json={"body": f":rocket: Found your PR! \n {content}"},
-                headers=HEADERS
+                json={"body": f":rocket: Doc Sanity bot found your PR! :rocket:\n {content}"},
+                headers=headers
             )
     
     return {"status": "success"}
