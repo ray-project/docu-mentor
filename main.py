@@ -83,6 +83,8 @@ async def handle_github_webhook(request: Request):
     data = await request.json()
     pr = data.get("pull_request")
 
+    logger.info(data)
+
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "User-Agent": "GitHub-PR-Bot",
