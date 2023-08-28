@@ -154,12 +154,14 @@ async def handle_github_webhook(request: Request):
                     files_to_keep = comment_body.replace("doc-sanity run ", "").split(" ")
 
                     url = get_diff_url(pr)
+                    logger.info(url)
                     diff_response = await client.get(url, headers=headers)
                     diff = diff_response.text
-                    logger.info("Raw diff with meta-data:" + diff)
 
                     files_with_diff = files_to_diff_dict(diff)
                     keys_to_keep = ['app']
+                    logger.info(files_with_diff.keys())
+
 
                     # Filter the dictionary
                     if files_to_keep:
@@ -167,7 +169,7 @@ async def handle_github_webhook(request: Request):
                             k: files_with_diff[k] for k in files_with_diff if any(sub in k for sub in keys_to_keep)
                         }
 
-                    logger.info(files_with_diff)
+                    logger.info(files_with_diff.keys())
 
                     chat_completion = openai.ChatCompletion.create(
                         model="meta-llama/Llama-2-70b-chat-hf",
