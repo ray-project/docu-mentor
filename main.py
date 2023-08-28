@@ -152,16 +152,14 @@ async def handle_github_webhook(request: Request):
                     # Fetch diff from GitHub
 
                     files_to_keep = comment_body.replace("@doc-sanity run", "").split(" ")
+                    logger.info(files_to_keep)
 
                     url = get_diff_url(pr)
-                    logger.info(url)
                     diff_response = await client.get(url, headers=headers)
                     diff = diff_response.text
 
                     files_with_diff = files_to_diff_dict(diff)
                     keys_to_keep = ['app']
-                    logger.info(files_with_diff.keys())
-
 
                     # Filter the dictionary
                     if files_to_keep:
