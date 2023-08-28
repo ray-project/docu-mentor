@@ -4,3 +4,4 @@ httpx
 python-dotenv
 openai
 pyjwt
+cryptography

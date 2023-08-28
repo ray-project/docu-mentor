@@ -139,7 +139,7 @@ async def handle_github_webhook(request: Request):
             # Let's comment on the PR
             await client.post(
                 f"{pr['issue_url']}/comments",
-                json={"body": f":rocket: Doc Sanity bot found your PR! :rocket:\n {content}"},
+                json={"body": f":rocket: Doc Sanity bot found your PR! :rocket:\n\nHere are the results of my analysis:\n {content}"},
                 headers=headers
             )
     
