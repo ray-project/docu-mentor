@@ -122,14 +122,15 @@ async def handle_github_webhook(request: Request):
 
             # Check if the bot is mentioned in the comment
             if "@doc-sanity" in comment_body:
-                # Your bot is mentioned in the PR comment
-                await client.post(
-                f"{pr['issue_url']}/comments",
-                json={
-                    "body": f"I react to @mentions!"
-                },
-                headers=headers
-            )
+                # The bot is mentioned in the PR comment
+                async with httpx.AsyncClient() as client:
+                    await client.post(
+                        f"{pr['issue_url']}/comments",
+                        json={
+                            "body": f"I react to @mentions!"
+                        },
+                        headers=headers
+                    )
     
     # Ensure PR exists and is opened or synchronized
     if pr and (data["action"] in ["opened", "synchronize"]):
