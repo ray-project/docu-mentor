@@ -180,4 +180,4 @@ async def handle_github_webhook(request: Request):
                 headers=headers
             )
     
-    return JSONResponse(status_code=200)
+    return JSONResponse(content={}, status_code=200)
