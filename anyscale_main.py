@@ -139,8 +139,9 @@ class ServeBot:
             }    
         
         # Check if the event is a new or modified issue comment
-        issue = data["issue"]
-        if issue and data.get("action") in ["created", "edited"]:
+        if data["issue"] and data.get("action") in ["created", "edited"]:
+            issue = data["issue"]
+
 
             # Check if the issue is a pull request
             if "/pull/" in issue["html_url"]:
