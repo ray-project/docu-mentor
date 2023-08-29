@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import openai
 import logging
+import string
 import sys
 import time
 import jwt
@@ -151,6 +152,8 @@ class ServeBot:
                 # Get the comment body
                 comment = data.get("comment")
                 comment_body = comment.get("body")
+                # Remove all whitespace characters except for regular spaces
+                comment_body = comment_body.translate(str.maketrans('', '', string.whitespace.replace(' ', '')))
 
                 # Skip if the bot talks about itself
                 author_handle = comment["user"]["login"]

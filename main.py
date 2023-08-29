@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import openai
 import logging
+import string
 import sys
 import time
 import jwt
@@ -138,6 +139,7 @@ async def handle_github_webhook(request: Request):
             # Get the comment body
             comment = data.get("comment")
             comment_body = comment.get("body")
+            comment_body = comment_body.translate(str.maketrans('', '', string.whitespace.replace(' ', '')))
 
             # Skip if the bot talks about itself
             author_handle = comment["user"]["login"]
