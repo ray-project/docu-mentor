@@ -139,6 +139,12 @@ async def handle_github_webhook(request: Request):
             comment = data.get("comment")
             comment_body = comment.get("body")
 
+            # Skip if the bot talks about itself
+            author_handle = comment["user"]["login"]
+            if author_handle == "doc-sanity":
+                return JSONResponse(content={}, status_code=200)
+
+
             # Check if the bot is mentioned in the comment
             if "@doc-sanity help" in comment_body:
                 # The bot is mentioned in the PR comment
