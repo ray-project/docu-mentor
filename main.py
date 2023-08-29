@@ -17,6 +17,7 @@ load_dotenv()
 
 GREETING = """
 👋 Hi, I'm @doc-sanity, an LLM-powered GitHub app 
+powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/)
 that gives you actionable feedback on your writing.
 
 Simply create a new comment in this PR that says:
