@@ -214,7 +214,7 @@ async def handle_github_webhook(request: Request):
                     )
     
     # Ensure PR exists and is opened or synchronized
-    if "pull_request" in data.keys() and (data["action"] in ["opened"]): # use "synchronize" for tracking new commits
+    if "pull_request" in data.keys() and (data["action"] in ["opened", "reopened"]): # use "synchronize" for tracking new commits
         pr = data.get("pull_request")
 
         async with httpx.AsyncClient() as client:
