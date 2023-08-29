@@ -127,7 +127,7 @@ async def handle_github_webhook(request: Request):
         }    
     
     # Check if the event is a new or modified issue comment
-    if data["issue"] and data.get("action") in ["created", "edited"]:
+    if "issue" in data.keys() and data.get("action") in ["created", "edited"]:
         issue = data["issue"]
 
         # Check if the issue is a pull request
@@ -210,7 +210,7 @@ async def handle_github_webhook(request: Request):
                     )
     
     # Ensure PR exists and is opened or synchronized
-    if data.get("pull_request") and (data["action"] in ["opened"]): # use "synchronize" for tracking commits
+    if "pull_request" in data.keys() and (data["action"] in ["opened"]): # use "synchronize" for tracking new commits
         pr = data.get("pull_request")
 
         async with httpx.AsyncClient() as client:
