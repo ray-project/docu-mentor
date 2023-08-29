@@ -156,7 +156,7 @@ class ServeBot:
                 author_handle = comment["user"]["login"]
 
                 # Check if the bot is mentioned in the comment
-                if author_handle != "doc-sanity" and "@doc-sanity help" in comment_body:
+                if author_handle != "doc-sanity[bot]" and "@doc-sanity help" in comment_body:
                     # The bot is mentioned in the PR comment
                     async with httpx.AsyncClient() as client:
                         await client.post(
@@ -166,7 +166,7 @@ class ServeBot:
                             },
                             headers=headers
                         )
-                elif author_handle != "doc-sanity" and "@doc-sanity run" in comment_body:
+                elif author_handle != "doc-sanity[bot]" and "@doc-sanity run" in comment_body:
                     async with httpx.AsyncClient() as client:
                         # Fetch diff from GitHub
 
