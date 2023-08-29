@@ -46,7 +46,7 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 # If the app was installed, retrieve the installation access token through the App's
 # private key and app ID, by generating an intermediary JWT token.
 APP_ID = os.environ.get("APP_ID")
-PRIVATE_KEY = os.environ.get("PRIVATE_KEY")
+PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "")
 
 
 def generate_jwt():
@@ -55,8 +55,10 @@ def generate_jwt():
         "exp": int(time.time()) + (10 * 60),
         "iss": APP_ID,
     }
-    jwt_token = jwt.encode(payload, PRIVATE_KEY, algorithm="RS256")
-    return jwt_token
+    if PRIVATE_KEY:
+        jwt_token = jwt.encode(payload, PRIVATE_KEY, algorithm="RS256")
+        return jwt_token
+    raise ValueError("PRIVATE_KEY not found.")
 
 
 @app.get("/")
@@ -209,9 +211,11 @@ async def handle_github_webhook(request: Request):
     
     # Ensure PR exists and is opened or synchronized
     if data.get("pull_request") and (data["action"] in ["opened"]): # use "synchronize" for tracking commits
+        pr = data.get("pull_request")
+
         async with httpx.AsyncClient() as client:
             await client.post(
-                f"{comment['issue_url']}/comments",
+                f"{pr['issue_url']}/comments",
                 json={
                     "body": GREETING
                 },

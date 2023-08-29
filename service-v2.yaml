@@ -1,0 +1,9 @@
+name: doc-sanity-bot
+cluster_env: default_cluster_env_2.6.3_py39:1
+ray_serve_config:
+  import_path: main:entrypoint
+  runtime_env:
+    working_dir: .
+    pip: [fastapi, uvicorn, httpx, python-dotenv, openai, pyjwt, cryptography]
+    env_vars:
+      SERVE_RESPONSE_MESSAGE: doc sanity bot says hello!
