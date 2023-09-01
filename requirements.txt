@@ -5,3 +5,11 @@ python-dotenv
 openai
 pyjwt
 cryptography
+
+# Styling
+black
+flake8
+Flake8-pyproject
+isort
+pyupgrade
+pre-commit
