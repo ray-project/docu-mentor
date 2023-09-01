@@ -24,4 +24,4 @@ you can specify them like this:
 ```
 
 In this example, I'll have a look at all files contained in the "doc/"
-folder and the file "README.md". All good? Let's get started!
+folder and the file "README.md".
