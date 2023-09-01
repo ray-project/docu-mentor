@@ -1,6 +1,7 @@
 import httpx
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
 
@@ -10,8 +11,9 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
     "User-Agent": "GitHub-PR-Bot",
-    "Accept": "application/vnd.github.v3+json"
+    "Accept": "application/vnd.github.v3+json",
 }
+
 
 async def get_pr_files(owner, repo, pr_number):
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
@@ -30,9 +32,7 @@ async def get_pr_diff(owner, repo, pr_number):
 
 async def post_pr_comment(owner, repo, pr_number, comment_body):
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
-    data = {
-        "body": comment_body
-    }
+    data = {"body": comment_body}
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=data, headers=HEADERS)
         return response.json()

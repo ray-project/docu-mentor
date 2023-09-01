@@ -23,5 +23,5 @@ you can specify them like this:
 @doc-sanity run doc/ README.md
 ```
 
-In this example, I'll have a look at all files contained in the "doc/"
-folder and the file "README.md".
+In this example, I'll have a look at all files contained in the
+"doc/" folder and the file "README.md".

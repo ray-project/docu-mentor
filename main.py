@@ -17,7 +17,7 @@ logger = logging.getLogger("Doc Sanity")
 load_dotenv()
 
 GREETING = """
-👋 Hi, I'm @doc-sanity, an LLM-powered GitHub app 
+👋 Hi, I'm @doc-sanity, an LLM-powered GitHub app
 powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/)
 that gives you actionable feedback on your writing.
 
@@ -89,12 +89,12 @@ def get_diff_url(pr):
 def files_to_diff_dict(diff):
     files_with_diff = {}
     current_file = None
-    for line in diff.split('\n'):
-        if line.startswith('diff --git'):
-            current_file = line.split(' ')[2][2:]
-            files_with_diff[current_file] = {'text': []}
-        elif line.startswith('+') and not line.startswith('+++'):
-            files_with_diff[current_file]['text'].append(line[1:])
+    for line in diff.split("\n"):
+        if line.startswith("diff --git"):
+            current_file = line.split(" ")[2][2:]
+            files_with_diff[current_file] = {"text": []}
+        elif line.startswith("+") and not line.startswith("+++"):
+            files_with_diff[current_file]["text"].append(line[1:])
     return files_with_diff
 
 
@@ -106,7 +106,7 @@ async def handle_github_webhook(request: Request):
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "User-Agent": "GitHub-PR-Bot",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
     }
 
     installation = data.get("installation")
@@ -117,50 +117,55 @@ async def handle_github_webhook(request: Request):
         JWT_TOKEN = generate_jwt()
 
         installation_access_token = await get_installation_access_token(
-            JWT_TOKEN, 
-            installation_id
+            JWT_TOKEN, installation_id
         )
-    
+
         headers = {
-            'Authorization': f'token {installation_access_token}',
-            'User-Agent': 'Your-App-Name',
-            'Accept': 'application/vnd.github.VERSION.diff'
-        }    
-    
+            "Authorization": f"token {installation_access_token}",
+            "User-Agent": "Your-App-Name",
+            "Accept": "application/vnd.github.VERSION.diff",
+        }
+
     # Check if the event is a new or modified issue comment
     if "issue" in data.keys() and data.get("action") in ["created", "edited"]:
         issue = data["issue"]
 
         # Check if the issue is a pull request
         if "/pull/" in issue["html_url"]:
-
             pr = issue.get("pull_request")
-            
+
             # Get the comment body
             comment = data.get("comment")
             comment_body = comment.get("body")
-            comment_body = comment_body.translate(str.maketrans('', '', string.whitespace.replace(' ', '')))
+            comment_body = comment_body.translate(
+                str.maketrans("", "", string.whitespace.replace(" ", ""))
+            )
 
             # Skip if the bot talks about itself
             author_handle = comment["user"]["login"]
             logger.info(f"HANDLE: {author_handle}")
 
             # Check if the bot is mentioned in the comment
-            if author_handle != "doc-sanity[bot]" and "@doc-sanity help" in comment_body:
+            if (
+                author_handle != "doc-sanity[bot]"
+                and "@doc-sanity help" in comment_body
+            ):
                 # The bot is mentioned in the PR comment
                 async with httpx.AsyncClient() as client:
                     await client.post(
                         f"{comment['issue_url']}/comments",
-                        json={
-                            "body": GREETING
-                        },
-                        headers=headers
+                        json={"body": GREETING},
+                        headers=headers,
                     )
-            elif author_handle != "doc-sanity[bot]" and "@doc-sanity run" in comment_body:
+            elif (
+                author_handle != "doc-sanity[bot]" and "@doc-sanity run" in comment_body
+            ):
                 async with httpx.AsyncClient() as client:
                     # Fetch diff from GitHub
 
-                    files_to_keep = comment_body.replace("@doc-sanity run", "").split(" ")
+                    files_to_keep = comment_body.replace("@doc-sanity run", "").split(
+                        " "
+                    )
                     files_to_keep = [item for item in files_to_keep if item]
 
                     logger.info(files_to_keep)
@@ -174,7 +179,9 @@ async def handle_github_webhook(request: Request):
                     # Filter the dictionary
                     if files_to_keep:
                         files_with_diff = {
-                            k: files_with_diff[k] for k in files_with_diff if any(sub in k for sub in files_to_keep)
+                            k: files_with_diff[k]
+                            for k in files_with_diff
+                            if any(sub in k for sub in files_to_keep)
                         }
 
                     logger.info(files_with_diff.keys())
@@ -182,17 +189,21 @@ async def handle_github_webhook(request: Request):
                     chat_completion = openai.ChatCompletion.create(
                         model="meta-llama/Llama-2-70b-chat-hf",
                         messages=[
-                            {"role": "system", 
-                            "content": "You are a helpful assistant." +
-                            "Improve the following <content>. Criticise grammar, punctuation, style etc." +
-                            "Make it so that you recommend common technical writing knowledge " +
-                            "The <content> will be in JSON format and contain file names and 'text'. " +
-                            "You can use GitHub-flavored markdown syntax. " +
-                            "Make sure to give very concise feedback per file."}, 
-                            {"role": "user", 
-                            "content": f"This is the content: {files_with_diff}"}
+                            {
+                                "role": "system",
+                                "content": "You are a helpful assistant."
+                                + "Improve the following <content>. Criticise grammar, punctuation, style etc."
+                                + "Make it so that you recommend common technical writing knowledge "
+                                + "The <content> will be in JSON format and contain file names and 'text'. "
+                                + "You can use GitHub-flavored markdown syntax. "
+                                + "Make sure to give very concise feedback per file.",
+                            },
+                            {
+                                "role": "user",
+                                "content": f"This is the content: {files_with_diff}",
+                            },
                         ],
-                        temperature=0.7
+                        temperature=0.7,
                     )
 
                     logger.info(chat_completion)
@@ -201,31 +212,29 @@ async def handle_github_webhook(request: Request):
                     prompt_tokens = usage.get("prompt_tokens")
                     completion_tokens = usage.get("completion_tokens")
                     content = chat_completion["choices"][0]["message"]["content"]
-                                
+
                     # Let's comment on the PR
                     await client.post(
                         f"{comment['issue_url']}/comments",
                         json={
-                            "body": f":rocket: Doc Sanity finished analysing your PR! :rocket:\n\n" +
-                            "Take a look at your results:\n" +
-                            f"{content}\n\n" +
-                            "This bot is proudly powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n" +
-                            f"It used the model {model}, used {prompt_tokens} prompt tokens, and {completion_tokens} completion tokens in total."
+                            "body": f":rocket: Doc Sanity finished analysing your PR! :rocket:\n\n"
+                            + "Take a look at your results:\n"
+                            + f"{content}\n\n"
+                            + "This bot is proudly powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n"
+                            + f"It used the model {model}, used {prompt_tokens} prompt tokens, and {completion_tokens} completion tokens in total."
                         },
-                        headers=headers
+                        headers=headers,
                     )
-    
+
     # Ensure PR exists and is opened or synchronized
-    if "pull_request" in data.keys() and (data["action"] in ["opened", "reopened"]): # use "synchronize" for tracking new commits
+    if "pull_request" in data.keys() and (
+        data["action"] in ["opened", "reopened"]
+    ):  # use "synchronize" for tracking new commits
         pr = data.get("pull_request")
 
         async with httpx.AsyncClient() as client:
             await client.post(
-                f"{pr['issue_url']}/comments",
-                json={
-                    "body": GREETING
-                },
-                headers=headers
+                f"{pr['issue_url']}/comments", json={"body": GREETING}, headers=headers
             )
-    
+
     return JSONResponse(content={}, status_code=200)
