@@ -5,6 +5,7 @@ python-dotenv
 openai
 pyjwt
 cryptography
+ray
 
 # Styling
 black
