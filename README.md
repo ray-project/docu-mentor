@@ -1,5 +1,7 @@
 # Doc Sanity
 
+![doc_sanity](https://github.com/ray-project/doc-sanity/assets/3462566/645dd42f-b424-4655-b25e-511527bee9f3)
+
 Automatically get suggestions to improve your PRs from this
 GitHub app powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).
 
