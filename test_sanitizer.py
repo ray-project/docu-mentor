@@ -13,13 +13,14 @@ def gpt4_evaluator(answers):
     """
     extra_instructions= """If the <content> is good as is, simply return "ok".
     Otherwise point out mistakes that have been missed."""
-    return sanitize(content=answers, model="gpt-4", system_content=gpt4_instructions, extra_instructions=extra_instructions)
+    res = sanitize(content=answers, model="gpt-4", system_content=gpt4_instructions, extra_instructions=extra_instructions)
+    return res["choices"][0]["message"]["content"]
 
 
 
 def test_sanitize_sentences(flawed_sentences):
     # Sanitize test data with doc-sanity models hosted by Anyscale Endpoints
-    corrected_sentences = sanitize(flawed_sentences)
+    corrected_sentences = sanitize(flawed_sentences)["choices"][0]["message"]["content"]
     print(corrected_sentences)
 
     # Redirect to OpenAI to use GPT-4 as evaluator
@@ -38,11 +39,11 @@ def test_sanitize_sentences(flawed_sentences):
 
 def test_sanitize_paragraphs(flawed_paragraphs):
     # Sanitize test data with doc-sanity models hosted by Anyscale Endpoints
-    corrected_paragraphs = sanitize(flawed_paragraphs)
+    corrected_paragraphs = sanitize(flawed_paragraphs)["choices"][0]["message"]["content"]
     print(corrected_paragraphs)
 
     # Redirect to OpenAI to use GPT-4 as evaluator
-    OPENAI_API_ENDPOINT="https://api.openai.com/v1/chat/completions"
+    OPENAI_API_ENDPOINT="https://api.openai.com/v1"
     openai.api_base = OPENAI_API_ENDPOINT
     openai.api_key = os.environ.get("GPT4_API_KEY")
 
