@@ -28,6 +28,16 @@ you can specify them like this:
 In this example, I'll have a look at all files contained in the
 "doc/" folder and the file "README.md".
 
+## Checking that it works
+
+Simply run
+
+```bash
+pytest . -s
+```
+
+to evaluate the doc sanitation bot against GPT-4.
+
 ## How it works under the hood
 
 TODO

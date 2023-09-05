@@ -47,28 +47,40 @@ load_dotenv()
 APP_ID = os.environ.get("APP_ID")
 PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "")
 
-openai.api_base = "https://api.endpoints.anyscale.com/v1"
+ANYSCALE_API_ENDPOINT = "https://api.endpoints.anyscale.com/v1"
+openai.api_base = ANYSCALE_API_ENDPOINT
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
-def sanitize(content, model="meta-llama/Llama-2-70b-chat-hf"):
-    """The 'content' can be any string in principle, but the prompt is crafted for
-    dictionary data of the form {'file_name': 'file_content'}. """
+SYSTEM_CONTENT = """
+You are a helpful assistant.
+Improve the following <content>. Criticise syntax, grammar, punctuation, style, etc.
+Recommend common technical writing knowledge, such as used in Vale
+and the Google developer documentation style guide.
+If the content is good, don't comment on it.
+The <content> will be in JSON format and contains file name keys and text values.
+You can use GitHub-flavored markdown syntax.
+Make sure to give very concise feedback per file.
+"""
+
+def sanitize(
+        content,
+        model="meta-llama/Llama-2-70b-chat-hf",
+        system_content=SYSTEM_CONTENT,
+        extra_instructions="Improve this content."
+    ):
+    """The content can be any string in principle, but the system prompt is
+    crafted for dictionary data of the form {'file_name': 'file_content'}. """
     openai.ChatCompletion.create(
         model=model,
         messages=[
             {
                 "role": "system",
-                "content": "You are a helpful assistant."
-                + "Improve the following <content>. Criticise grammar, punctuation, and style."
-                + "Make it so that you recommend common technical writing knowledge, such as used in Vale."
-                + "The <content> will be in JSON format and contain file name keys and text values. "
-                + "You can use GitHub-flavored markdown syntax. "
-                + "Make sure to give very concise feedback per file.",
+                "content": system_content
             },
             {
                 "role": "user",
-                "content": f"This is the content: {content}. Improve this content.",
+                "content": f"This is the content: {content}. {extra_instructions}",
             },
         ],
         temperature=0.7,
