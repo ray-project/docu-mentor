@@ -2,6 +2,9 @@ from main import sanitize, ANYSCALE_API_ENDPOINT
 import openai
 import os
 import pytest
+import re
+
+
 
 
 def gpt4_evaluator(answers):
@@ -10,15 +13,23 @@ def gpt4_evaluator(answers):
         Another system has been tasked with improving syntax, grammar, punctuation, style, etc.
         of the following <content>.
         The <content> is in JSON format and contains file name keys and text values.
+        Be thorough, but not overly critical. If the content is good, there's no need to comment on it.
     """
     extra_instructions= """If the <content> is good as is, simply return "ok".
-    Otherwise point out mistakes that have been missed."""
+    Otherwise point out mistakes that have been missed.
+    At the very end, give an assessment of what percentage of answers were sufficient.
+    E.g., if only 2 out of 50 answers needed improvement, success rate of 96%.
+    It's important to return this success rate as string."""
     res = sanitize(content=answers, model="gpt-4", system_content=gpt4_instructions, extra_instructions=extra_instructions)
     return res["choices"][0]["message"]["content"]
 
 
 
 def test_sanitize_sentences(flawed_sentences):
+    # Set keys to Anyscale Endpoints usage
+    openai.api_base = ANYSCALE_API_ENDPOINT
+    openai.api_key = os.environ.get("ANYSCALE_API_KEY")
+
     # Sanitize test data with doc-sanity models hosted by Anyscale Endpoints
     corrected_sentences = sanitize(flawed_sentences)["choices"][0]["message"]["content"]
     print(corrected_sentences)
@@ -32,12 +43,18 @@ def test_sanitize_sentences(flawed_sentences):
     gpt_sentence_eval = gpt4_evaluator(corrected_sentences)
     print(gpt_sentence_eval)
 
-    # Set keys back to Anyscale Endpoints usage
-    openai.api_base = ANYSCALE_API_ENDPOINT
-    openai.api_key = os.environ.get("OPENAI_API_KEY")
+    pattern = r'\d+%'
+    matches = re.findall(pattern, gpt_sentence_eval)
+    if matches:
+        percentage = float(matches[0][:-1])
+        assert percentage > 80
 
 
 def test_sanitize_paragraphs(flawed_paragraphs):
+    # Set keys to Anyscale Endpoints usage
+    openai.api_base = ANYSCALE_API_ENDPOINT
+    openai.api_key = os.environ.get("ANYSCALE_API_KEY")
+
     # Sanitize test data with doc-sanity models hosted by Anyscale Endpoints
     corrected_paragraphs = sanitize(flawed_paragraphs)["choices"][0]["message"]["content"]
     print(corrected_paragraphs)
@@ -48,14 +65,16 @@ def test_sanitize_paragraphs(flawed_paragraphs):
     openai.api_key = os.environ.get("GPT4_API_KEY")
 
     # Print the evaluation results
-
     gpt_paragrap_eval = gpt4_evaluator(corrected_paragraphs)
     print(gpt_paragrap_eval)
 
-    # Set keys back to Anyscale Endpoints usage
-    openai.api_base = ANYSCALE_API_ENDPOINT
-    openai.api_key = os.environ.get("OPENAI_API_KEY")
-
+    # Doc-sanity should match the expectations of GPT-4 80% of the time,
+    # as GPT tends to be fairly critical for longer paragraphs overall.
+    pattern = r'\b\d+(\.\d+)?%\b'
+    matches = re.findall(pattern, gpt_paragrap_eval)
+    if matches:
+        percentage = float(matches[0][:-1])
+        assert percentage > 80
 
 
 @pytest.fixture

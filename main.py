@@ -49,7 +49,7 @@ PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "")
 
 ANYSCALE_API_ENDPOINT = "https://api.endpoints.anyscale.com/v1"
 openai.api_base = ANYSCALE_API_ENDPOINT
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai.api_key = os.environ.get("ANYSCALE_API_KEY")
 
 
 SYSTEM_CONTENT = """
@@ -58,6 +58,7 @@ Improve the following <content>. Criticise syntax, grammar, punctuation, style, 
 Recommend common technical writing knowledge, such as used in Vale
 and the Google developer documentation style guide.
 If the content is good, don't comment on it.
+Do not comment on file names, just the actual text.
 The <content> will be in JSON format and contains file name keys and text values.
 You can use GitHub-flavored markdown syntax.
 Make sure to give very concise feedback per file.
@@ -70,18 +71,13 @@ def sanitize(
         extra_instructions="Improve this content."
     ):
     """The content can be any string in principle, but the system prompt is
-    crafted for dictionary data of the form {'file_name': 'file_content'}. """
+    crafted for dictionary data of the form {'file_name': 'file_content'}.
+    """
     return openai.ChatCompletion.create(
         model=model,
         messages=[
-            {
-                "role": "system",
-                "content": system_content
-            },
-            {
-                "role": "user",
-                "content": f"This is the content: {content}. {extra_instructions}",
-            },
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": f"This is the content: {content}. {extra_instructions}"},
         ],
         temperature=0.7,
     )
