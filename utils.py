@@ -1,38 +1,53 @@
 import httpx
 from dotenv import load_dotenv
 import os
+import time
 
 load_dotenv()
 
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+APP_ID = os.environ.get("APP_ID")
+PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "")
 
 
-HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "User-Agent": "GitHub-PR-Bot",
-    "Accept": "application/vnd.github.v3+json",
-}
+def generate_jwt():
+    payload = {
+        "iat": int(time.time()),
+        "exp": int(time.time()) + (10 * 60),
+        "iss": APP_ID,
+    }
+    if PRIVATE_KEY:
+        jwt_token = jwt.encode(payload, PRIVATE_KEY, algorithm="RS256")
+        return jwt_token
+    raise ValueError("PRIVATE_KEY not found.")
 
 
-async def get_pr_files(owner, repo, pr_number):
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
+async def get_installation_access_token(jwt, installation_id):
+    url = f"https://api.github.com/app/installations/{installation_id}/access_tokens"
+    headers = {
+        "Authorization": f"Bearer {jwt}",
+        "Accept": "application/vnd.github.v3+json",
+    }
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=HEADERS)
-        return response.json()
+        response = await client.post(url, headers=headers)
+        return response.json()["token"]
 
 
-async def get_pr_diff(owner, repo, pr_number):
-    url = f"https://patch-diff.githubusercontent.com/raw/{owner}/{repo}/pull/{pr_number}.diff"
+def get_diff_url(pr):
+    """GitHub 302s to this URL."""
+    original_url = pr.get("url")
+    parts = original_url.split("/")
+    owner, repo, pr_number = parts[-4], parts[-3], parts[-1]
+    return f"https://patch-diff.githubusercontent.com/raw/{owner}/{repo}/pull/{pr_number}.diff"
 
-    async with httpx.AsyncClient() as client:
-        diff_response = await client.get(url, headers=HEADERS)
-        return diff_response.text
 
-
-async def post_pr_comment(owner, repo, pr_number, comment_body):
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
-    data = {"body": comment_body}
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=data, headers=HEADERS)
-        return response.json()
+def files_to_diff_dict(diff):
+    files_with_diff = {}
+    current_file = None
+    for line in diff.split("\n"):
+        if line.startswith("diff --git"):
+            current_file = line.split(" ")[2][2:]
+            files_with_diff[current_file] = {"text": []}
+        elif line.startswith("+") and not line.startswith("+++"):
+            files_with_diff[current_file]["text"].append(line[1:])
+    return files_with_diff
