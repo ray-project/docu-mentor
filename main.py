@@ -71,7 +71,7 @@ def sanitize(
     ):
     """The content can be any string in principle, but the system prompt is
     crafted for dictionary data of the form {'file_name': 'file_content'}. """
-    openai.ChatCompletion.create(
+    return openai.ChatCompletion.create(
         model=model,
         messages=[
             {
