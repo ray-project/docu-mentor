@@ -8,3 +8,6 @@ ray_serve_config:
     pip: [fastapi, httpx, python-dotenv, openai, pyjwt, cryptography]
     env_vars:
       SERVE_RESPONSE_MESSAGE: doc sanity bot says hello!
+config:
+  access:
+    use_bearer_token: False
