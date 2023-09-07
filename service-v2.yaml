@@ -1,4 +1,4 @@
-name: doc-sanity-bot
+name: docu-mentor-bot
 cluster_env: default_cluster_env_2.6.3_py39:1
 ray_serve_config:
   import_path: main:bot
@@ -6,8 +6,5 @@ ray_serve_config:
     working_dir: .
     # We use dotenv for secrets mgmt, and JWT + cryptography for auth
     pip: [fastapi, httpx, python-dotenv, openai, pyjwt, cryptography]
-    env_vars:
-      SERVE_RESPONSE_MESSAGE: doc sanity bot says hello!
-config:
   access:
     use_bearer_token: False
