@@ -9,6 +9,8 @@ load_dotenv()
 APP_ID = os.environ.get("APP_ID")
 PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "")
 
+# with open('private-key.pem', 'r') as f:
+#     PRIVATE_KEY = f.read()
 
 def generate_jwt():
     payload = {
