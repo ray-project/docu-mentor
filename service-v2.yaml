@@ -1,5 +1,5 @@
 name: docu-mentor-bot
-cluster_env: default_cluster_env_2.6.3_py39:1
+cluster_env: default_cluster_env_2.6.3_py38:1
 ray_serve_config:
   import_path: main:bot
   runtime_env:
