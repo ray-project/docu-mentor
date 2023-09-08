@@ -1,5 +1,6 @@
 import httpx
 from dotenv import load_dotenv
+import jwt
 import os
 import time
 
