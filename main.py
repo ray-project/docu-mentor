@@ -17,8 +17,6 @@ from utils import (
     files_to_diff_dict
 )
 
-ray.init(object_store_memory=78643200)
-
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("Docu Mentor")
@@ -55,15 +53,17 @@ openai.api_base = ANYSCALE_API_ENDPOINT
 openai.api_key = os.environ.get("ANYSCALE_API_KEY")
 
 
-SYSTEM_CONTENT = """
-You are a helpful assistant.
+SYSTEM_CONTENT = """You are a helpful assistant.
 Improve the following <content>. Criticise syntax, grammar, punctuation, style, etc.
 Recommend common technical writing knowledge, such as used in Vale
 and the Google developer documentation style guide.
 If the content is good, don't comment on it.
-Do not comment on file names, just the actual text.
+You can use GitHub-flavored markdown syntax in your answer.
+"""
+
+PROMPT = """Improve this content.
+Don't comment on file names or other meta data, just the actual text.
 The <content> will be in JSON format and contains file name keys and text values.
-You can use GitHub-flavored markdown syntax.
 Make sure to give very concise feedback per file.
 """
 
@@ -71,19 +71,50 @@ def mentor(
         content,
         model="meta-llama/Llama-2-70b-chat-hf",
         system_content=SYSTEM_CONTENT,
-        extra_instructions="Improve this content."
+        prompt=PROMPT
     ):
-    """The content can be any string in principle, but the system prompt is
-    crafted for dictionary data of the form {'file_name': 'file_content'}.
-    """
-    return openai.ChatCompletion.create(
+    result = openai.ChatCompletion.create(
         model=model,
         messages=[
             {"role": "system", "content": system_content},
-            {"role": "user", "content": f"This is the content: {content}. {extra_instructions}"},
+            {"role": "user", "content": f"This is the content: {content}. {prompt}"},
         ],
         temperature=0.7,
     )
+    usage = result.get("usage")
+    prompt_tokens = usage.get("prompt_tokens")
+    completion_tokens = usage.get("completion_tokens")
+    content = result["choices"][0]["message"]["content"]
+
+    return content, model, prompt_tokens, completion_tokens
+
+try:
+    ray.init()
+except:
+    logger.info("Ray init failed.")
+
+
+@ray.remote
+def mentor_task(content, model, system_content, prompt):
+    return mentor(content, model, system_content, prompt)
+
+def ray_mentor(
+        content: dict,
+        model="meta-llama/Llama-2-70b-chat-hf",
+        system_content=SYSTEM_CONTENT,
+        prompt="Improve this content."
+    ):
+    futures = [
+        mentor_task.remote(v, model, system_content, prompt)
+        for v in content.values()
+        ]
+    suggestions = ray.get(futures)
+    content = {k: v[0] for k, v in zip(content.keys(), suggestions)}
+    prompt_tokens = sum(v[2] for v in suggestions)
+    completion_tokens = sum(v[3] for v in suggestions)
+
+    return content, model, prompt_tokens, completion_tokens
+
 
 
 app = FastAPI()
@@ -163,27 +194,24 @@ async def handle_webhook(request: Request):
                     diff_response = await client.get(url, headers=headers)
                     diff = diff_response.text
 
-                    files_with_diff = files_to_diff_dict(diff)
+                    files = files_to_diff_dict(diff)
 
                     # Filter the dictionary
                     if files_to_keep:
-                        files_with_diff = {
-                            k: files_with_diff[k]
-                            for k in files_with_diff
+                        files = {
+                            k: files[k]
+                            for k in files
                             if any(sub in k for sub in files_to_keep)
                         }
-
-                    logger.info(files_with_diff.keys())
+                    logger.info(files.keys())
 
                     # Get suggestions from Docu Mentor
-                    chat_completion = mentor(files_with_diff)
+                    content, model, prompt_tokens, completion_tokens = ray_mentor(files) if ray.is_initialized() else mentor(files)
 
-                    logger.info(chat_completion)
-                    model = chat_completion.get("model")
-                    usage = chat_completion.get("usage")
-                    prompt_tokens = usage.get("prompt_tokens")
-                    completion_tokens = usage.get("completion_tokens")
-                    content = chat_completion["choices"][0]["message"]["content"]
+                    print_content = ""
+                    for k, v in content.items():
+                        print_content += f"{k}:\n\t\{v}\n\n"
+                    logger.info(print_content)
 
                     # Let's comment on the PR
                     await client.post(
@@ -191,7 +219,7 @@ async def handle_webhook(request: Request):
                         json={
                             "body": f":rocket: Docu Mentor finished analysing your PR! :rocket:\n\n"
                             + "Take a look at your results:\n"
-                            + f"{content}\n\n"
+                            + f"{print_content}\n\n"
                             + "This bot is proudly powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n"
                             + f"It used the model {model}, used {prompt_tokens} prompt tokens, "
                             + f"and {completion_tokens} completion tokens in total."
