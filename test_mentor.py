@@ -1,10 +1,8 @@
-from main import sanitize, ANYSCALE_API_ENDPOINT
+from main import mentor, ANYSCALE_API_ENDPOINT
 import openai
 import os
 import pytest
 import re
-
-
 
 
 def gpt4_evaluator(answers):
@@ -20,18 +18,18 @@ def gpt4_evaluator(answers):
     At the very end, give an assessment of what percentage of answers were sufficient.
     E.g., if only 2 out of 50 answers needed improvement, success rate of 96%.
     It's important to return this success rate as string."""
-    res = sanitize(content=answers, model="gpt-4", system_content=gpt4_instructions, extra_instructions=extra_instructions)
+    res = mentor(content=answers, model="gpt-4", system_content=gpt4_instructions, extra_instructions=extra_instructions)
     return res["choices"][0]["message"]["content"]
 
 
 
-def test_sanitize_sentences(flawed_sentences):
+def test_mentor_sentences(flawed_sentences):
     # Set keys to Anyscale Endpoints usage
     openai.api_base = ANYSCALE_API_ENDPOINT
     openai.api_key = os.environ.get("ANYSCALE_API_KEY")
 
-    # Sanitize test data with doc-sanity models hosted by Anyscale Endpoints
-    corrected_sentences = sanitize(flawed_sentences)["choices"][0]["message"]["content"]
+    # mentor test data with doc-sanity models hosted by Anyscale Endpoints
+    corrected_sentences = mentor(flawed_sentences)["choices"][0]["message"]["content"]
     print(corrected_sentences)
 
     # Redirect to OpenAI to use GPT-4 as evaluator
@@ -50,13 +48,13 @@ def test_sanitize_sentences(flawed_sentences):
         assert percentage > 80
 
 
-def test_sanitize_paragraphs(flawed_paragraphs):
+def test_mentor_paragraphs(flawed_paragraphs):
     # Set keys to Anyscale Endpoints usage
     openai.api_base = ANYSCALE_API_ENDPOINT
     openai.api_key = os.environ.get("ANYSCALE_API_KEY")
 
-    # Sanitize test data with doc-sanity models hosted by Anyscale Endpoints
-    corrected_paragraphs = sanitize(flawed_paragraphs)["choices"][0]["message"]["content"]
+    # mentor test data with doc-sanity models hosted by Anyscale Endpoints
+    corrected_paragraphs = mentor(flawed_paragraphs)["choices"][0]["message"]["content"]
     print(corrected_paragraphs)
 
     # Redirect to OpenAI to use GPT-4 as evaluator

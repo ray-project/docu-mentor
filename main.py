@@ -64,7 +64,7 @@ You can use GitHub-flavored markdown syntax.
 Make sure to give very concise feedback per file.
 """
 
-def sanitize(
+def mentor(
         content,
         model="meta-llama/Llama-2-70b-chat-hf",
         system_content=SYSTEM_CONTENT,
@@ -174,8 +174,8 @@ async def handle_webhook(request: Request):
 
                     logger.info(files_with_diff.keys())
 
-                    # Sanitize the content
-                    chat_completion = sanitize(files_with_diff)
+                    # Get suggestions from Docu Mentor
+                    chat_completion = mentor(files_with_diff)
 
                     logger.info(chat_completion)
                     model = chat_completion.get("model")
