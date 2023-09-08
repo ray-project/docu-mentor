@@ -113,7 +113,12 @@ def ray_mentor(
     prompt_tokens = sum(v[2] for v in suggestions)
     completion_tokens = sum(v[3] for v in suggestions)
 
-    return content, model, prompt_tokens, completion_tokens
+    print_content = ""
+        for k, v in content.items():
+            print_content += f"{k}:\n\t\{v}\n\n"
+        logger.info(print_content)
+
+    return print_content, model, prompt_tokens, completion_tokens
 
 
 
@@ -208,10 +213,6 @@ async def handle_webhook(request: Request):
                     # Get suggestions from Docu Mentor
                     content, model, prompt_tokens, completion_tokens = ray_mentor(files) if ray.is_initialized() else mentor(files)
 
-                    print_content = ""
-                    for k, v in content.items():
-                        print_content += f"{k}:\n\t\{v}\n\n"
-                    logger.info(print_content)
 
                     # Let's comment on the PR
                     await client.post(
@@ -219,7 +220,7 @@ async def handle_webhook(request: Request):
                         json={
                             "body": f":rocket: Docu Mentor finished analysing your PR! :rocket:\n\n"
                             + "Take a look at your results:\n"
-                            + f"{print_content}\n\n"
+                            + f"{content}\n\n"
                             + "This bot is proudly powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n"
                             + f"It used the model {model}, used {prompt_tokens} prompt tokens, "
                             + f"and {completion_tokens} completion tokens in total."
