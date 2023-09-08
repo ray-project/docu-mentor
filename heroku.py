@@ -22,19 +22,19 @@ logger = logging.getLogger("Doc Sanity")
 
 
 GREETING = """
-👋 Hi, I'm @doc-sanity, an LLM-powered GitHub app
+👋 Hi, I'm @docu-mentor, an LLM-powered GitHub app
 powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/)
 that gives you actionable feedback on your writing.
 
 Simply create a new comment in this PR that says:
 
-@doc-sanity run
+@docu-mentor run
 
 and I will start my analysis. I only look at what you changed
 in this PR. If you only want me to look at specific files or folders,
 you can specify them like this:
 
-@doc-sanity run doc/ README.md
+@docu-mentor run doc/ README.md
 
 In this example, I'll have a look at all files contained in the "doc/"
 folder and the file "README.md". All good? Let's get started!
@@ -186,24 +186,13 @@ async def handle_github_webhook(request: Request):
 
             # Check if the bot is mentioned in the comment
             if (
-                author_handle != "doc-sanity[bot]"
-                and "@doc-sanity help" in comment_body
-            ):
-                # The bot is mentioned in the PR comment
-                async with httpx.AsyncClient() as client:
-                    await client.post(
-                        f"{comment['issue_url']}/comments",
-                        json={"body": GREETING},
-                        headers=headers,
-                    )
-            elif (
-                author_handle != "doc-sanity[bot]"
-                and "@doc-sanity run" in comment_body
+                author_handle != "docu-mentor[bot]"
+                and "@docu-mentor run" in comment_body
             ):
                 async with httpx.AsyncClient() as client:
                     # Fetch diff from GitHub
                     files_to_keep = comment_body.replace(
-                        "@doc-sanity run", ""
+                        "@docu-mentor run", ""
                     ).split(" ")
                     files_to_keep = [item for item in files_to_keep if item]
 
