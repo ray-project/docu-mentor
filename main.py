@@ -114,9 +114,9 @@ def ray_mentor(
     completion_tokens = sum(v[3] for v in suggestions)
 
     print_content = ""
-        for k, v in content.items():
-            print_content += f"{k}:\n\t\{v}\n\n"
-        logger.info(print_content)
+    for k, v in content.items():
+        print_content += f"{k}:\n\t\{v}\n\n"
+    logger.info(print_content)
 
     return print_content, model, prompt_tokens, completion_tokens
 
