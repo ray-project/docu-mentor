@@ -51,7 +51,7 @@ async def handle_query(request: Request):
 
 @app.get("/")
 async def root():
-    return await {"message": "Docu Mentor reporting for duty!"}
+    return {"message": "Docu Mentor reporting for duty!"}
 
 
 @app.post("/webhook/")
