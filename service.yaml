@@ -6,5 +6,6 @@ ray_serve_config:
     working_dir: .
     # We use dotenv for secrets mgmt, and JWT + cryptography for auth
     pip: [fastapi, httpx, python-dotenv, openai, pyjwt, cryptography]
+config:
   access:
     use_bearer_token: False
