@@ -7,6 +7,7 @@ import openai
 import logging
 import string
 import sys
+import ray
 from ray import serve
 
 from utils import (
@@ -15,6 +16,8 @@ from utils import (
     get_diff_url,
     files_to_diff_dict
 )
+
+ray.init(object_store_memory=78643200)
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -85,8 +88,6 @@ def mentor(
 
 app = FastAPI()
 
-async def smoke_test():
-    return  {"message": "Docu Mentor reporting for duty!"}
 
 async def handle_webhook(request: Request):
     data = await request.json()
@@ -203,7 +204,7 @@ async def handle_webhook(request: Request):
 class ServeBot:
     @app.get("/")
     async def root(self):
-        return await smoke_test()
+        return {"message": "Docu Mentor reporting for duty!"}
 
     @app.post("/webhook/")
     async def handle_webhook_route(self, request: Request):

@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from main import smoke_test, handle_webhook
+from main import handle_webhook
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -51,7 +51,8 @@ async def handle_query(request: Request):
 
 @app.get("/")
 async def root():
-    return await smoke_test()
+    return await {"message": "Docu Mentor reporting for duty!"}
+
 
 @app.post("/webhook/")
 async def handle_webhook_route(request: Request):
