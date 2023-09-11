@@ -57,6 +57,8 @@ SYSTEM_CONTENT = """You are a helpful assistant.
 Improve the following <content>. Criticise syntax, grammar, punctuation, style, etc.
 Recommend common technical writing knowledge, such as used in Vale
 and the Google developer documentation style guide.
+For Python docstrings, make sure input arguments and return values are documented.
+Also, docstrings should have good descriptions and come with examples.
 If the content is good, don't comment on it.
 You can use GitHub-flavored markdown syntax in your answer.
 """
@@ -141,7 +143,7 @@ async def handle_webhook(request: Request):
 
         headers = {
             "Authorization": f"token {installation_access_token}",
-            "User-Agent": "Your-App-Name",
+            "User-Agent": "docu-mentor-bot",
             "Accept": "application/vnd.github.VERSION.diff",
         }
     else:
@@ -149,7 +151,7 @@ async def handle_webhook(request: Request):
 
     # If PR exists and is opened
     if "pull_request" in data.keys() and (
-        data["action"] in ["opened"]
+        data["action"] in ["opened", "reopened"]
     ):  # use "synchronize" for tracking new commits
         pr = data.get("pull_request")
 
@@ -211,17 +213,20 @@ async def handle_webhook(request: Request):
                     logger.info(files.keys())
 
                     # Get suggestions from Docu Mentor
-                    content, model, prompt_tokens, completion_tokens = ray_mentor(files) if ray.is_initialized() else mentor(files)
+                    content, model, prompt_tokens, completion_tokens = \
+                        ray_mentor(files) if ray.is_initialized() else mentor(files)
 
 
                     # Let's comment on the PR
                     await client.post(
                         f"{comment['issue_url']}/comments",
                         json={
-                            "body": f":rocket: Docu Mentor finished analysing your PR! :rocket:\n\n"
+                            "body": f":rocket: Docu Mentor finished "
+                            + "analysing your PR! :rocket:\n\n"
                             + "Take a look at your results:\n"
                             + f"{content}\n\n"
-                            + "This bot is proudly powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n"
+                            + "This bot is proudly powered by "
+                            + "[Anyscale Endpoints](https://app.endpoints.anyscale.com/).\n"
                             + f"It used the model {model}, used {prompt_tokens} prompt tokens, "
                             + f"and {completion_tokens} completion tokens in total."
                         },
