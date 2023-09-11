@@ -61,6 +61,7 @@ For Python docstrings, make sure input arguments and return values are documente
 Also, docstrings should have good descriptions and come with examples.
 If the content is good, don't comment on it.
 You can use GitHub-flavored markdown syntax in your answer.
+If you encounter several files, give very concise feedback per file.
 """
 
 PROMPT = """Improve this content.
