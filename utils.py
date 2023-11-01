@@ -119,7 +119,7 @@ def parse_diff_to_line_numbers(diff):
 def get_context_from_files(files, files_with_line_numbers, context_lines=2):
     context_data = {}
     for file, lines in files_with_line_numbers.items():
-        file_content = files[file].split("\n")
+        file_content = files[file].decode('utf-8').split("\n")
         context_data[file] = []
         for line in lines:
             start = max(line - context_lines, 0)
