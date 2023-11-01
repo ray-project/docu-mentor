@@ -77,6 +77,7 @@ async def get_pr_head_branch(pr, headers):
     original_url = pr.get("url")
     parts = original_url.split("/")
     owner, repo, pr_number = parts[-4], parts[-3], parts[-1]
+    print(owner, repo, pr_number)
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
 
     async with httpx.AsyncClient() as client:
