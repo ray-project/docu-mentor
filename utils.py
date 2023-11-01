@@ -1,16 +1,11 @@
 import httpx
 from dotenv import load_dotenv
 import jwt
-import logging
 import os
-import sys
 import time
 
 load_dotenv()
 
-
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logger = logging.getLogger("Docu Mentor Utils")
 
 
 APP_ID = os.environ.get("APP_ID")
@@ -83,7 +78,6 @@ async def get_pr_head_branch(pr, headers):
     original_url = pr.get("url")
     parts = original_url.split("/")
     owner, repo, pr_number = parts[-4], parts[-3], parts[-1]
-    print(owner, repo, pr_number)
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
 
     async with httpx.AsyncClient() as client:
