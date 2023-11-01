@@ -14,7 +14,11 @@ from utils import (
     generate_jwt,
     get_installation_access_token,
     get_diff_url,
-    files_to_diff_dict
+    files_to_diff_dict,
+    get_branch_files,
+    get_pr_head_branch,
+    parse_diff_to_line_numbers,
+    get_context_from_files,
 )
 
 
@@ -156,13 +160,13 @@ async def handle_webhook(request: Request):
     ):  # use "synchronize" for tracking new commits
         pr = data.get("pull_request")
 
+        # Greet the user and show instructions.
         async with httpx.AsyncClient() as client:
             await client.post(
                 f"{pr['issue_url']}/comments",
                 json={"body": GREETING},
                 headers=headers,
             )
-
         return JSONResponse(content={}, status_code=200)
 
     # Check if the event is a new or modified issue comment
@@ -202,20 +206,30 @@ async def handle_webhook(request: Request):
                     diff_response = await client.get(url, headers=headers)
                     diff = diff_response.text
 
-                    files = files_to_diff_dict(diff)
+                    # files = files_to_diff_dict(diff)
+                    files = parse_diff_to_line_numbers(diff)
+
+                    # Get head branch of the PR
+                    head_branch = await get_pr_head_branch(pr, headers)
+
+                    # Get files from head branch
+                    head_branch_files = await get_branch_files(pr, head_branch, headers)
+
+                    # Enrich diff data with context from the head branch
+                    context_files = get_context_from_files(head_branch_files, files)
 
                     # Filter the dictionary
                     if files_to_keep:
-                        files = {
-                            k: files[k]
-                            for k in files
+                        context_files = {
+                            k: context_files[k]
+                            for k in context_files
                             if any(sub in k for sub in files_to_keep)
                         }
-                    logger.info(files.keys())
+                    logger.info(context_files.keys())
 
                     # Get suggestions from Docu Mentor
                     content, model, prompt_tokens, completion_tokens = \
-                        ray_mentor(files) if ray.is_initialized() else mentor(files)
+                        ray_mentor(context_files) if ray.is_initialized() else mentor(context_files)
 
 
                     # Let's comment on the PR
