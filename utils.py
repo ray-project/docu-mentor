@@ -78,9 +78,22 @@ async def get_pr_head_branch(pr, headers):
     parts = original_url.split("/")
     owner, repo, pr_number = parts[-4], parts[-3], parts[-1]
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
-        return response.json().get('head', {}).get('ref', '')
+
+        # Check if the response is successful
+        if response.status_code != 200:
+            print(f"Error: Received status code {response.status_code}")
+            print("Response body:", response.text)
+            return ''
+
+        # Safely get the 'ref'
+        data = response.json()
+        print(data)
+        head_data = data.get('head', {})
+        ref = head_data.get('ref', '')
+        return ref
 
 
 def parse_diff_to_line_numbers(diff):
