@@ -45,18 +45,6 @@ def get_diff_url(pr):
     return f"https://patch-diff.githubusercontent.com/raw/{owner}/{repo}/pull/{pr_number}.diff"
 
 
-def files_to_diff_dict(diff):
-    files_with_diff = {}
-    current_file = None
-    for line in diff.split("\n"):
-        if line.startswith("diff --git"):
-            current_file = line.split(" ")[2][2:]
-            files_with_diff[current_file] = {"text": []}
-        elif line.startswith("+") and not line.startswith("+++"):
-            files_with_diff[current_file]["text"].append(line[1:])
-    return files_with_diff
-
-
 async def get_branch_files(pr, branch, headers):
     original_url = pr.get("url")
     parts = original_url.split("/")
@@ -91,10 +79,21 @@ async def get_pr_head_branch(pr, headers):
 
         # Safely get the 'ref'
         data = response.json()
-        print(data)
         head_data = data.get('head', {})
         ref = head_data.get('ref', '')
         return ref
+
+
+def files_to_diff_dict(diff):
+    files_with_diff = {}
+    current_file = None
+    for line in diff.split("\n"):
+        if line.startswith("diff --git"):
+            current_file = line.split(" ")[2][2:]
+            files_with_diff[current_file] = {"text": []}
+        elif line.startswith("+") and not line.startswith("+++"):
+            files_with_diff[current_file]["text"].append(line[1:])
+    return files_with_diff
 
 
 def parse_diff_to_line_numbers(diff):

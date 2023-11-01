@@ -207,7 +207,8 @@ async def handle_webhook(request: Request):
                     diff = diff_response.text
 
                     # files = files_to_diff_dict(diff)
-                    files = parse_diff_to_line_numbers(diff)
+                    files_with_lines = parse_diff_to_line_numbers(diff)
+                    print("LINE FILES", files_with_lines)
 
                     headers["Accept"] = "application/vnd.github.full+json"
                     # # Get head branch of the PR
@@ -215,10 +216,11 @@ async def handle_webhook(request: Request):
 
                     # # Get files from head branch
                     head_branch_files = await get_branch_files(pr, head_branch, headers)
+                    print("HEAD FILES", head_branch_files)
 
                     # Enrich diff data with context from the head branch
                     # context_files = files
-                    context_files = get_context_from_files(head_branch_files, files)
+                    context_files = get_context_from_files(head_branch_files, files_with_lines)
 
                     # Filter the dictionary
                     if files_to_keep:
