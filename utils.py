@@ -1,3 +1,4 @@
+import base64
 import httpx
 from dotenv import load_dotenv
 import jwt
@@ -56,11 +57,14 @@ async def get_branch_files(pr, branch, headers):
         files = {}
         for item in tree:
             if item['type'] == 'blob':
-                print(item)
                 file_url = item['url']
+                print(file_url)
                 file_response = await client.get(file_url, headers=headers)
-                files[item['path']] = file_response.json().get('content', '')
-    return files
+                content = file_response.json().get('content', '')
+                # Decode the base64 content
+                decoded_content = base64.b64decode(content).decode('utf-8')
+                files[item['path']] = decoded_content
+        return files
 
 
 async def get_pr_head_branch(pr, headers):
