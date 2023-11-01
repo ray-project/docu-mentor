@@ -59,7 +59,7 @@ async def get_branch_files(pr, branch, headers):
                 print(item)
                 file_url = item['url']
                 file_response = await client.get(file_url, headers=headers)
-                files[item['path']] = file_response.json().get('content', '').encode('utf-8')
+                files[item['path']] = file_response.json().get('content', '')
     return files
 
 
@@ -119,7 +119,7 @@ def parse_diff_to_line_numbers(diff):
 def get_context_from_files(files, files_with_line_numbers, context_lines=2):
     context_data = {}
     for file, lines in files_with_line_numbers.items():
-        file_content = files[file].decode('utf-8').split("\n")
+        file_content = files[file].split("\n")
         context_data[file] = []
         for line in lines:
             start = max(line - context_lines, 0)
