@@ -134,6 +134,7 @@ app = FastAPI()
 
 async def handle_webhook(request: Request):
     data = await request.json()
+    logging.info(data)
 
     installation = data.get("installation")
     if installation and installation.get("id"):
@@ -151,6 +152,7 @@ async def handle_webhook(request: Request):
             "User-Agent": "docu-mentor-bot",
             "Accept": "application/vnd.github.VERSION.diff",
         }
+        logging.info(headers)
     else:
         raise ValueError("No app installation found.")
 
@@ -159,6 +161,7 @@ async def handle_webhook(request: Request):
         data["action"] in ["opened", "reopened"]
     ):  # use "synchronize" for tracking new commits
         pr = data.get("pull_request")
+        logging.info(pr)
 
         # Greet the user and show instructions.
         async with httpx.AsyncClient() as client:
@@ -206,17 +209,18 @@ async def handle_webhook(request: Request):
                     diff_response = await client.get(url, headers=headers)
                     diff = diff_response.text
 
-                    # files = files_to_diff_dict(diff)
-                    files = parse_diff_to_line_numbers(diff)
+                    files = files_to_diff_dict(diff)
+                    # files = parse_diff_to_line_numbers(diff)
 
-                    # Get head branch of the PR
-                    head_branch = await get_pr_head_branch(pr, headers)
+                    # # Get head branch of the PR
+                    # head_branch = await get_pr_head_branch(pr, headers)
 
-                    # Get files from head branch
-                    head_branch_files = await get_branch_files(pr, head_branch, headers)
+                    # # Get files from head branch
+                    # head_branch_files = await get_branch_files(pr, head_branch, headers)
 
                     # Enrich diff data with context from the head branch
-                    context_files = get_context_from_files(head_branch_files, files)
+                    context_files = files
+                    # context_files = get_context_from_files(head_branch_files, files)
 
                     # Filter the dictionary
                     if files_to_keep:

@@ -1,10 +1,16 @@
 import httpx
 from dotenv import load_dotenv
 import jwt
+import logging
 import os
+import sys
 import time
 
 load_dotenv()
+
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger("Docu Mentor Utils")
 
 
 APP_ID = os.environ.get("APP_ID")
