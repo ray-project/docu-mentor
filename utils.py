@@ -56,8 +56,10 @@ async def get_branch_files(pr, branch, headers):
         files = {}
         for item in tree:
             if item['type'] == 'blob':
-                # Use the file path as the key and the URL to the raw content as the value
-                files[item['path']] = item['url']
+                print(item)
+                file_url = item['url']
+                file_response = await client.get(file_url, headers=headers)
+                files[item['path']] = file_response.json().get('content', '').encode('utf-8')
     return files
 
 
