@@ -2,7 +2,7 @@
 
 <img width="212" alt="docu_mentor" src="https://github.com/maxpumperla/docu-mentor/assets/3462566/de9f387a-4c97-4ade-a811-3b6282950f2c">
 
-Automatically get suggestions to improve your PRs from this
+Automatically get suggestions to improve the writing in your PRs from this
 GitHub app powered by [Anyscale Endpoints](https://app.endpoints.anyscale.com/).
 
 ## Installation
@@ -38,6 +38,10 @@ pytest . -s
 
 to evaluate the doc sanitation bot against GPT-4.
 
-## How it works under the hood
+## Deployment
 
-TODO
+The bot is built for deployment with [Anyscale Services](https://anyscale.com),
+using the `service.yaml` with the `main.py` entrypoint provided in this repo.
+You can also deploy it on Heroku, using the `Procfile` and `heroku.py`.
+With Anyscale you can parallelize your bot using Ray, reducing the total
+wallclock time, with Heroku that doesn't work.

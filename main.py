@@ -14,7 +14,6 @@ from utils import (
     generate_jwt,
     get_installation_access_token,
     get_diff_url,
-    files_to_diff_dict,
     get_branch_files,
     get_pr_head_branch,
     parse_diff_to_line_numbers,
@@ -76,7 +75,7 @@ Make sure to give very concise feedback per file.
 
 def mentor(
         content,
-        model="meta-llama/Llama-2-70b-chat-hf",
+        model="codellama/CodeLlama-34b-Instruct-hf",
         system_content=SYSTEM_CONTENT,
         prompt=PROMPT
     ):
@@ -107,7 +106,7 @@ def mentor_task(content, model, system_content, prompt):
 
 def ray_mentor(
         content: dict,
-        model="meta-llama/Llama-2-70b-chat-hf",
+        model="codellama/CodeLlama-34b-Instruct-hf",
         system_content=SYSTEM_CONTENT,
         prompt="Improve this content."
     ):
@@ -206,20 +205,17 @@ async def handle_webhook(request: Request):
                     diff_response = await client.get(url, headers=headers)
                     diff = diff_response.text
 
-                    # files = files_to_diff_dict(diff)
                     files_with_lines = parse_diff_to_line_numbers(diff)
-                    print("LINE FILES", files_with_lines)
 
+                    # Get head branch of the PR
                     headers["Accept"] = "application/vnd.github.full+json"
-                    # # Get head branch of the PR
                     head_branch = await get_pr_head_branch(pr, headers)
 
-                    # # Get files from head branch
+                    # Get files from head branch
                     head_branch_files = await get_branch_files(pr, head_branch, headers)
                     print("HEAD FILES", head_branch_files)
 
-                    # Enrich diff data with context from the head branch
-                    # context_files = files
+                    # Enrich diff data with context from the head branch.
                     context_files = get_context_from_files(head_branch_files, files_with_lines)
 
                     # Filter the dictionary
@@ -229,7 +225,6 @@ async def handle_webhook(request: Request):
                             for k in context_files
                             if any(sub in k for sub in files_to_keep)
                         }
-                    logger.info(context_files.keys())
 
                     # Get suggestions from Docu Mentor
                     content, model, prompt_tokens, completion_tokens = \
